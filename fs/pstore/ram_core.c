@@ -80,23 +80,6 @@ static inline void buffer_size_add(struct persistent_ram_zone *prz, size_t a)
 	} while (atomic_cmpxchg(&prz->buffer->size, old, new) != old);
 }
 
-/* increase the size counter, retuning an error if it hits the max size */
-static inline ssize_t buffer_size_add_clamp(struct persistent_ram_zone *prz,
-	size_t a)
-{
-	size_t old;
-	size_t new;
-
-	do {
-		old = atomic_read(&prz->buffer->size);
-		new = old + a;
-		if (new > prz->buffer_size)
-			return -ENOMEM;
-	} while (atomic_cmpxchg(&prz->buffer->size, old, new) != old);
-
-	return 0;
-}
-
 static void notrace persistent_ram_encode_rs8(struct persistent_ram_zone *prz,
 	uint8_t *data, size_t len, uint8_t *ecc)
 {
@@ -301,7 +284,7 @@ int notrace persistent_ram_write(struct persistent_ram_zone *prz,
 		c = prz->buffer_size;
 	}
 
-	buffer_size_add_clamp(prz, c);
+	buffer_size_add(prz, c);
 
 	start = buffer_start_add(prz, c);
 
@@ -401,28 +384,6 @@ static int persistent_ram_buffer_map(phys_addr_t start, phys_addr_t size,
 	return 0;
 }
 
-static int __init persistent_ram_buffer_init(const char *name,
-		struct persistent_ram_zone *prz)
-{
-	int i;
-	struct persistent_ram *ram;
-	struct persistent_ram_descriptor *desc;
-	phys_addr_t start;
-
-	list_for_each_entry(ram, &persistent_ram_list, node) {
-		start = ram->start;
-		for (i = 0; i < ram->num_descs; i++) {
-			desc = &ram->descs[i];
-			if (!strcmp(desc->name, name))
-				return persistent_ram_buffer_map(start,
-						desc->size, prz);
-			start += desc->size;
-		}
-	}
-
-	return -EINVAL;
-}
-
 static int __init persistent_ram_post_init(struct persistent_ram_zone *prz, bool ecc)
 {
 	int ret;
@@ -495,6 +456,29 @@ err:
 	return ERR_PTR(ret);
 }
 
+#ifndef MODULE
+static int __init persistent_ram_buffer_init(const char *name,
+		struct persistent_ram_zone *prz)
+{
+	int i;
+	struct persistent_ram *ram;
+	struct persistent_ram_descriptor *desc;
+	phys_addr_t start;
+
+	list_for_each_entry(ram, &persistent_ram_list, node) {
+		start = ram->start;
+		for (i = 0; i < ram->num_descs; i++) {
+			desc = &ram->descs[i];
+			if (!strcmp(desc->name, name))
+				return persistent_ram_buffer_map(start,
+						desc->size, prz);
+			start += desc->size;
+		}
+	}
+
+	return -EINVAL;
+}
+
 static  __init
 struct persistent_ram_zone *__persistent_ram_init(struct device *dev, bool ecc)
 {
@@ -545,3 +529,4 @@ int __init persistent_ram_early_init(struct persistent_ram *ram)
 
 	return 0;
 }
+#endif

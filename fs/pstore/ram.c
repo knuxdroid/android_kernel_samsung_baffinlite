@@ -2,6 +2,7 @@
  * RAM Oops/Panic logger
  *
  * Copyright (C) 2010 Marco Stornelli <marco.stornelli@gmail.com>
+ * Copyright (C) 2011 Kees Cook <keescook@chromium.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,7 +25,7 @@
 #include <linux/kernel.h>
 #include <linux/err.h>
 #include <linux/module.h>
-#include <linux/kmsg_dump.h>
+#include <linux/pstore.h>
 #include <linux/time.h>
 #include <linux/io.h>
 #include <linux/ioport.h>
@@ -55,73 +56,161 @@ module_param(dump_oops, int, 0600);
 MODULE_PARM_DESC(dump_oops,
 		"set to 1 to dump oopses, 0 to only dump panics (default 1)");
 
-static struct ramoops_context {
-	struct kmsg_dumper dump;
-	void *virt_addr;
+struct ramoops_context {
+	struct persistent_ram_zone **przs;
 	phys_addr_t phys_addr;
 	unsigned long size;
-	unsigned long record_size;
+	size_t record_size;
 	int dump_oops;
-	int count;
-	int max_count;
-} oops_cxt;
+	unsigned int count;
+	unsigned int max_count;
+	unsigned int read_count;
+	struct pstore_info pstore;
+};
 
 static struct platform_device *dummy;
 static struct ramoops_platform_data *dummy_data;
 
-static void ramoops_do_dump(struct kmsg_dumper *dumper,
-		enum kmsg_dump_reason reason, const char *s1, unsigned long l1,
-		const char *s2, unsigned long l2)
+static int ramoops_pstore_open(struct pstore_info *psi)
 {
-	struct ramoops_context *cxt = container_of(dumper,
-			struct ramoops_context, dump);
-	unsigned long s1_start, s2_start;
-	unsigned long l1_cpy, l2_cpy;
-	int res, hdr_size;
-	char *buf, *buf_orig;
-	struct timeval timestamp;
+	struct ramoops_context *cxt = psi->data;
 
+	cxt->read_count = 0;
+	return 0;
+}
+
+static ssize_t ramoops_pstore_read(u64 *id, enum pstore_type_id *type,
+				   struct timespec *time,
+				   char **buf,
+				   struct pstore_info *psi)
+{
+	ssize_t size;
+	struct ramoops_context *cxt = psi->data;
+	struct persistent_ram_zone *prz;
+
+	if (cxt->read_count >= cxt->max_count)
+		return -EINVAL;
+
+	*id = cxt->read_count++;
+	prz = cxt->przs[*id];
+
+	/* Only supports dmesg output so far. */
+	*type = PSTORE_TYPE_DMESG;
+	/* TODO(kees): Bogus time for the moment. */
+	time->tv_sec = 0;
+	time->tv_nsec = 0;
+
+	size = persistent_ram_old_size(prz);
+	*buf = kmalloc(size, GFP_KERNEL);
+	if (*buf == NULL)
+		return -ENOMEM;
+	memcpy(*buf, persistent_ram_old(prz), size);
+
+	return size;
+}
+
+static size_t ramoops_write_kmsg_hdr(struct persistent_ram_zone *prz)
+{
+	char *hdr;
+	struct timeval timestamp;
+	size_t len;
+
+	do_gettimeofday(&timestamp);
+	hdr = kasprintf(GFP_ATOMIC, RAMOOPS_KERNMSG_HDR "%lu.%lu\n",
+		(long)timestamp.tv_sec, (long)timestamp.tv_usec);
+	WARN_ON_ONCE(!hdr);
+	len = hdr ? strlen(hdr) : 0;
+	persistent_ram_write(prz, hdr, len);
+	kfree(hdr);
+
+	return len;
+}
+
+static int ramoops_pstore_write(enum pstore_type_id type,
+				enum kmsg_dump_reason reason,
+				u64 *id,
+				unsigned int part,
+				size_t size, struct pstore_info *psi)
+{
+	struct ramoops_context *cxt = psi->data;
+	struct persistent_ram_zone *prz = cxt->przs[cxt->count];
+	size_t hlen;
+
+	/* Currently ramoops is designed to only store dmesg dumps. */
+	if (type != PSTORE_TYPE_DMESG)
+		return -EINVAL;
+
+	/* Out of the various dmesg dump types, ramoops is currently designed
+	 * to only store crash logs, rather than storing general kernel logs.
+	 */
 	if (reason != KMSG_DUMP_OOPS &&
 	    reason != KMSG_DUMP_PANIC)
-		return;
+		return -EINVAL;
 
-	/* Only dump oopses if dump_oops is set */
+	/* Skip Oopes when configured to do so. */
 	if (reason == KMSG_DUMP_OOPS && !cxt->dump_oops)
-		return;
+		return -EINVAL;
 
-	buf = cxt->virt_addr + (cxt->count * cxt->record_size);
-	buf_orig = buf;
+	/* Explicitly only take the first part of any new crash.
+	 * If our buffer is larger than kmsg_bytes, this can never happen,
+	 * and if our buffer is smaller than kmsg_bytes, we don't want the
+	 * report split across multiple records.
+	 */
+	if (part != 1)
+		return -ENOSPC;
 
-	memset(buf, '\0', cxt->record_size);
-	res = sprintf(buf, "%s", RAMOOPS_KERNMSG_HDR);
-	buf += res;
-	do_gettimeofday(&timestamp);
-	res = sprintf(buf, "%lu.%lu\n", (long)timestamp.tv_sec, (long)timestamp.tv_usec);
-	buf += res;
-
-	hdr_size = buf - buf_orig;
-	l2_cpy = min(l2, cxt->record_size - hdr_size);
-	l1_cpy = min(l1, cxt->record_size - hdr_size - l2_cpy);
-
-	s2_start = l2 - l2_cpy;
-	s1_start = l1 - l1_cpy;
-
-	memcpy(buf, s1 + s1_start, l1_cpy);
-	memcpy(buf + l1_cpy, s2 + s2_start, l2_cpy);
+	hlen = ramoops_write_kmsg_hdr(prz);
+	if (size + hlen > prz->buffer_size)
+		size = prz->buffer_size - hlen;
+	persistent_ram_write(prz, cxt->pstore.buf, size);
 
 	cxt->count = (cxt->count + 1) % cxt->max_count;
+
+	return 0;
 }
+
+static int ramoops_pstore_erase(enum pstore_type_id type, u64 id,
+				struct pstore_info *psi)
+{
+	struct ramoops_context *cxt = psi->data;
+
+	if (id >= cxt->max_count)
+		return -EINVAL;
+
+	persistent_ram_free_old(cxt->przs[id]);
+
+	return 0;
+}
+
+static struct ramoops_context oops_cxt = {
+	.pstore = {
+		.owner	= THIS_MODULE,
+		.name	= "ramoops",
+		.open	= ramoops_pstore_open,
+		.read	= ramoops_pstore_read,
+		.write	= ramoops_pstore_write,
+		.erase	= ramoops_pstore_erase,
+	},
+};
 
 static int __init ramoops_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct ramoops_platform_data *pdata = pdev->dev.platform_data;
 	struct ramoops_context *cxt = &oops_cxt;
 	int err = -EINVAL;
+	int i;
+
+	/* Only a single ramoops area allowed at a time, so fail extra
+	 * probes.
+	 */
+	if (cxt->max_count)
+		goto fail_out;
 
 	if (!pdata->mem_size || !pdata->record_size) {
 		pr_err("The memory size and the record size must be "
 			"non-zero\n");
-		goto fail3;
+		goto fail_out;
 	}
 
 	pdata->mem_size = rounddown_pow_of_two(pdata->mem_size);
@@ -130,14 +219,15 @@ static int __init ramoops_probe(struct platform_device *pdev)
 	/* Check for the minimum memory size */
 	if (pdata->mem_size < MIN_MEM_SIZE &&
 			pdata->record_size < MIN_MEM_SIZE) {
-		pr_err("memory size too small, minium is %lu\n", MIN_MEM_SIZE);
-		goto fail3;
+		pr_err("memory size too small, minimum is %lu\n",
+			MIN_MEM_SIZE);
+		goto fail_out;
 	}
 
 	if (pdata->mem_size < pdata->record_size) {
 		pr_err("The memory size must be larger than the "
 			"records size\n");
-		goto fail3;
+		goto fail_out;
 	}
 
 	cxt->max_count = pdata->mem_size / pdata->record_size;
@@ -147,23 +237,39 @@ static int __init ramoops_probe(struct platform_device *pdev)
 	cxt->record_size = pdata->record_size;
 	cxt->dump_oops = pdata->dump_oops;
 
-	if (!request_mem_region(cxt->phys_addr, cxt->size, "ramoops")) {
-		pr_err("request mem region failed\n");
-		err = -EINVAL;
-		goto fail3;
+	cxt->przs = kzalloc(sizeof(*cxt->przs) * cxt->max_count, GFP_KERNEL);
+	if (!cxt->przs) {
+		err = -ENOMEM;
+		dev_err(dev, "failed to initialize a prz array\n");
+		goto fail_out;
 	}
 
-	cxt->virt_addr = ioremap(cxt->phys_addr,  cxt->size);
-	if (!cxt->virt_addr) {
-		pr_err("ioremap failed\n");
-		goto fail2;
+	for (i = 0; i < cxt->max_count; i++) {
+		size_t sz = cxt->record_size;
+		phys_addr_t start = cxt->phys_addr + sz * i;
+
+		cxt->przs[i] = persistent_ram_new(start, sz, 0);
+		if (IS_ERR(cxt->przs[i])) {
+			err = PTR_ERR(cxt->przs[i]);
+			dev_err(dev, "failed to request mem region (0x%zx@0x%llx): %d\n",
+				sz, (unsigned long long)start, err);
+			goto fail_przs;
+		}
 	}
 
-	cxt->dump.dump = ramoops_do_dump;
-	err = kmsg_dump_register(&cxt->dump);
+	cxt->pstore.data = cxt;
+	cxt->pstore.bufsize = cxt->przs[0]->buffer_size;
+	cxt->pstore.buf = kmalloc(cxt->pstore.bufsize, GFP_KERNEL);
+	spin_lock_init(&cxt->pstore.buf_lock);
+	if (!cxt->pstore.buf) {
+		pr_err("cannot allocate pstore buffer\n");
+		goto fail_clear;
+	}
+
+	err = pstore_register(&cxt->pstore);
 	if (err) {
-		pr_err("registering kmsg dumper failed\n");
-		goto fail1;
+		pr_err("registering with pstore failed\n");
+		goto fail_buf;
 	}
 
 	/*
@@ -175,26 +281,44 @@ static int __init ramoops_probe(struct platform_device *pdev)
 	record_size = pdata->record_size;
 	dump_oops = pdata->dump_oops;
 
+	pr_info("attached 0x%lx@0x%llx (%ux0x%zx)\n",
+		cxt->size, (unsigned long long)cxt->phys_addr,
+		cxt->max_count, cxt->record_size);
+
 	return 0;
 
-fail1:
-	iounmap(cxt->virt_addr);
-fail2:
-	release_mem_region(cxt->phys_addr, cxt->size);
-fail3:
+fail_buf:
+	kfree(cxt->pstore.buf);
+fail_clear:
+	cxt->pstore.bufsize = 0;
+	cxt->max_count = 0;
+fail_przs:
+	for (i = 0; cxt->przs[i]; i++)
+		persistent_ram_free(cxt->przs[i]);
+	kfree(cxt->przs);
+fail_out:
 	return err;
 }
 
 static int __exit ramoops_remove(struct platform_device *pdev)
 {
+#if 0
+	/* TODO(kees): We cannot unload ramoops since pstore doesn't support
+	 * unregistering yet.
+	 */
 	struct ramoops_context *cxt = &oops_cxt;
-
-	if (kmsg_dump_unregister(&cxt->dump) < 0)
-		pr_warn("could not unregister kmsg_dumper\n");
 
 	iounmap(cxt->virt_addr);
 	release_mem_region(cxt->phys_addr, cxt->size);
+	cxt->max_count = 0;
+
+	/* TODO(kees): When pstore supports unregistering, call it here. */
+	kfree(cxt->pstore.buf);
+	cxt->pstore.bufsize = 0;
+
 	return 0;
+#endif
+	return -EBUSY;
 }
 
 static struct platform_driver ramoops_driver = {
