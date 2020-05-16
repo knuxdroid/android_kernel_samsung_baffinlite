@@ -78,6 +78,7 @@
 #include <linux/broadcom/secure_memory.h>
 
 #include <trace/stm.h>
+#include <linux/pstore_ram.h>
 
 #ifdef CONFIG_HAS_WAKELOCK
 #include <linux/wakelock.h>
@@ -2655,6 +2656,21 @@ static void __init ldi_mdnie_init(void)
 #endif /* CONFIG_LDI_MDNIE_SUPPORT */
 
 
+static struct ramoops_platform_data ramoops_data = {
+	.mem_size               = 0x00100000,
+	.mem_address            = 0x83000000,
+	.record_size            = 0x00020000,
+	.console_size           = 0x00020000,
+	.dump_oops              = 1,
+};
+
+static struct platform_device ramoops_dev = {
+	.name = "ramoops",
+	.dev = {
+		.platform_data = &ramoops_data,
+	},
+};
+
 static void __init hawaii_init(void)
 {
 	hawaii_add_devices();
@@ -2683,6 +2699,13 @@ static void __init hawaii_init(void)
 #ifdef CONFIG_ISDBT
 	isdbt_dev_init();
 #endif
+
+	int ramoopsret;
+	ramoopsret = platform_device_register(&ramoops_dev);
+	if (ramoopsret) {
+		printk(KERN_ERR "unable to register platform device\n");
+		return ramoopsret;
+	}
 	return;
 }
 
