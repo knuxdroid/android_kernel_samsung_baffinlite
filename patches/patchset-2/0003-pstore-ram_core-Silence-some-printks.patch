@@ -1,0 +1,41 @@
+From 602b5be4f14cabd5b751c340919958549475ab62 Mon Sep 17 00:00:00 2001
+From: Anton Vorontsov <anton.vorontsov@linaro.org>
+Date: Sat, 26 May 2012 06:20:24 -0700
+Subject: [PATCH 4/6] pstore/ram_core: Silence some printks
+
+Since we use multiple regions, the messages are somewhat annoying.
+We do print total mapped memory already, so no need to print the
+information for each region in the library routines.
+
+Signed-off-by: Anton Vorontsov <anton.vorontsov@linaro.org>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Colin Cross <ccross@android.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ fs/pstore/ram_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/fs/pstore/ram_core.c b/fs/pstore/ram_core.c
+index c5fbdbbf81ac..78f6d4b2addb 100644
+--- a/fs/pstore/ram_core.c
++++ b/fs/pstore/ram_core.c
+@@ -409,14 +409,14 @@ static int __init persistent_ram_post_init(struct persistent_ram_zone *prz, bool
+ 				" size %zu, start %zu\n",
+ 			       buffer_size(prz), buffer_start(prz));
+ 		else {
+-			pr_info("persistent_ram: found existing buffer,"
++			pr_debug("persistent_ram: found existing buffer,"
+ 				" size %zu, start %zu\n",
+ 			       buffer_size(prz), buffer_start(prz));
+ 			persistent_ram_save_old(prz);
+ 			return 0;
+ 		}
+ 	} else {
+-		pr_info("persistent_ram: no valid data in buffer"
++		pr_debug("persistent_ram: no valid data in buffer"
+ 			" (sig = 0x%08x)\n", prz->buffer->sig);
+ 	}
+ 
+-- 
+2.26.2
+

@@ -1,0 +1,112 @@
+From 1894a253db97059bc299b834b76f665bc6586b1d Mon Sep 17 00:00:00 2001
+From: Anton Vorontsov <anton.vorontsov@linaro.org>
+Date: Wed, 16 May 2012 05:43:08 -0700
+Subject: [PATCH] ramoops: Move to fs/pstore/ram.c
+
+Since ramoops was converted to pstore, it has nothing to do with character
+devices nowadays. Instead, today it is just a RAM backend for pstore.
+
+The patch just moves things around. There are a few changes were needed
+because of the move:
+
+1. Kconfig and Makefiles fixups, of course.
+
+2. In pstore/ram.c we have to play a bit with MODULE_PARAM_PREFIX, this
+   is needed to keep user experience the same as with ramoops driver
+   (i.e. so that ramoops.foo kernel command line arguments would still
+   work).
+
+Signed-off-by: Anton Vorontsov <anton.vorontsov@linaro.org>
+Acked-by: Marco Stornelli <marco.stornelli@gmail.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ Documentation/ramoops.txt                 |  2 +-
+ fs/pstore/Kconfig                         | 14 ++++++++++++++
+ fs/pstore/Makefile                        |  3 +++
+ drivers/char/ramoops.c => fs/pstore/ram.c |  2 +-
+ include/linux/{ramoops.h => pstore_ram.h} |  4 ++--
+ 7 files changed, 21 insertions(+), 14 deletions(-)
+ rename drivers/char/ramoops.c => fs/pstore/ram.c (99%)
+ rename include/linux/{ramoops.h => pstore_ram.h} (81%)
+
+diff --git a/Documentation/ramoops.txt b/Documentation/ramoops.txt
+index a0b9d8e75380..470d2c4db6ff 100644
+--- a/Documentation/ramoops.txt
++++ b/Documentation/ramoops.txt
+@@ -38,7 +38,7 @@ Setting the ramoops parameters can be done in 2 different manners:
+  2. Use a platform device and set the platform data. The parameters can then
+  be set through that platform data. An example of doing that is:
+ 
+-#include <linux/ramoops.h>
++#include <linux/pstore_ram.h>
+ [...]
+ 
+ static struct ramoops_platform_data ramoops_data = {
+diff --git a/fs/pstore/Kconfig b/fs/pstore/Kconfig
+index 8007ae7c0d8c..b75ee51b2714 100644
+--- a/fs/pstore/Kconfig
++++ b/fs/pstore/Kconfig
+@@ -11,3 +11,17 @@ config PSTORE
+ 	   (e.g. ACPI_APEI on X86) which will select this for you.
+ 	   If you don't have a platform persistent store driver,
+ 	   say N.
++
++config PSTORE_RAM
++	tristate "Log panic/oops to a RAM buffer"
++	depends on HAS_IOMEM
++	depends on PSTORE
++	default n
++	help
++	  This enables panic and oops messages to be logged to a circular
++	  buffer in RAM where it can be read back at some later point.
++
++	  Note that for historical reasons, the module will be named
++	  "ramoops.ko".
++
++	  For more information, see Documentation/ramoops.txt.
+diff --git a/fs/pstore/Makefile b/fs/pstore/Makefile
+index 760f4bce7d1d..2ab3d0d55ef6 100644
+--- a/fs/pstore/Makefile
++++ b/fs/pstore/Makefile
+@@ -5,3 +5,6 @@
+ obj-y += pstore.o
+ 
+ pstore-objs += inode.o platform.o
++
++ramoops-objs += ram.o
++obj-$(CONFIG_PSTORE_RAM)	+= ramoops.o
+diff --git a/drivers/char/ramoops.c b/fs/pstore/ram.c
+similarity index 99%
+rename from drivers/char/ramoops.c
+rename to fs/pstore/ram.c
+index b8b8542a5105..e443c9c6914f 100644
+--- a/drivers/char/ramoops.c
++++ b/fs/pstore/ram.c
+@@ -31,7 +31,7 @@
+ #include <linux/ioport.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+-#include <linux/ramoops.h>
++#include <linux/pstore_ram.h>
+ 
+ #define RAMOOPS_KERNMSG_HDR "===="
+ #define MIN_MEM_SIZE 4096UL
+diff --git a/include/linux/ramoops.h b/include/linux/pstore_ram.h
+similarity index 81%
+rename from include/linux/ramoops.h
+rename to include/linux/pstore_ram.h
+index 484fef81cd3a..fa4cb02da413 100644
+--- a/include/linux/ramoops.h
++++ b/include/linux/pstore_ram.h
+@@ -1,5 +1,5 @@
+-#ifndef __RAMOOPS_H
+-#define __RAMOOPS_H
++#ifndef __LINUX_PSTORE_RAM_H__
++#define __LINUX_PSTORE_RAM_H__
+ 
+ /*
+  * Ramoops platform data
+-- 
+2.26.2
+

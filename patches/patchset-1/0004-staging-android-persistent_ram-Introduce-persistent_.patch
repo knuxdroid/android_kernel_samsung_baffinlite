@@ -1,0 +1,82 @@
+From 8cf5aff89e5991aa4bec903b6dbab7d248047d98 Mon Sep 17 00:00:00 2001
+From: Anton Vorontsov <anton.vorontsov@linaro.org>
+Date: Fri, 11 May 2012 17:17:34 -0700
+Subject: [PATCH 4/7] staging: android: persistent_ram: Introduce
+ persistent_ram_new()
+
+The routine just creates a persistent ram zone at a specified address.
+
+For persistent_ram_init_ringbuffer() we'd need to add a
+'struct persistent_ram' to the global list, and associate it with a
+device. We don't need all this complexity in pstore_ram, so we introduce
+the simple function.
+
+Signed-off-by: Anton Vorontsov <anton.vorontsov@linaro.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/staging/android/persistent_ram.c | 26 ++++++++++++++++++++++++
+ drivers/staging/android/persistent_ram.h |  4 ++++
+ 2 files changed, 30 insertions(+)
+
+diff --git a/drivers/staging/android/persistent_ram.c b/drivers/staging/android/persistent_ram.c
+index ec23822c774b..c0c3d32ffe82 100644
+--- a/drivers/staging/android/persistent_ram.c
++++ b/drivers/staging/android/persistent_ram.c
+@@ -412,6 +412,32 @@ static int __init persistent_ram_post_init(struct persistent_ram_zone *prz, bool
+ 	return 0;
+ }
+ 
++struct persistent_ram_zone * __init persistent_ram_new(phys_addr_t start,
++						       size_t size,
++						       bool ecc)
++{
++	struct persistent_ram_zone *prz;
++	int ret = -ENOMEM;
++
++	prz = kzalloc(sizeof(struct persistent_ram_zone), GFP_KERNEL);
++	if (!prz) {
++		pr_err("persistent_ram: failed to allocate persistent ram zone\n");
++		goto err;
++	}
++
++	ret = persistent_ram_buffer_map(start, size, prz);
++	if (ret)
++		goto err;
++
++	persistent_ram_post_init(prz, ecc);
++	persistent_ram_update_header_ecc(prz);
++
++	return prz;
++err:
++	kfree(prz);
++	return ERR_PTR(ret);
++}
++
+ static  __init
+ struct persistent_ram_zone *__persistent_ram_init(struct device *dev, bool ecc)
+ {
+diff --git a/drivers/staging/android/persistent_ram.h b/drivers/staging/android/persistent_ram.h
+index 563535547d8d..8154d15befa7 100644
+--- a/drivers/staging/android/persistent_ram.h
++++ b/drivers/staging/android/persistent_ram.h
+@@ -19,6 +19,7 @@
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+ #include <linux/types.h>
++#include <linux/init.h>
+ 
+ struct persistent_ram_buffer;
+ 
+@@ -62,6 +63,9 @@ struct persistent_ram_zone {
+ 
+ int persistent_ram_early_init(struct persistent_ram *ram);
+ 
++struct persistent_ram_zone * __init persistent_ram_new(phys_addr_t start,
++						       size_t size,
++						       bool ecc);
+ struct persistent_ram_zone *persistent_ram_init_ringbuffer(struct device *dev,
+ 		bool ecc);
+ 
+-- 
+2.26.2
+

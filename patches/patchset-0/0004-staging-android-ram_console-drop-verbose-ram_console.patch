@@ -1,0 +1,50 @@
+From c5ee1211f249b0897f715aba4647c1f494509cab Mon Sep 17 00:00:00 2001
+From: Colin Cross <ccross@android.com>
+Date: Wed, 7 Mar 2012 17:34:31 -0800
+Subject: [PATCH 4/5] staging: android: ram_console: drop verbose ram_console
+ support
+
+Equivalent functionality can be obtained with loglevel=15
+
+CC: Android Kernel Team <kernel-team@android.com>
+Signed-off-by: Colin Cross <ccross@android.com>
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/staging/android/Kconfig       | 5 -----
+ drivers/staging/android/ram_console.c | 3 ---
+ 2 files changed, 8 deletions(-)
+
+diff --git a/drivers/staging/android/Kconfig b/drivers/staging/android/Kconfig
+index 20034e6e63e4..3144ddb329aa 100644
+--- a/drivers/staging/android/Kconfig
++++ b/drivers/staging/android/Kconfig
+@@ -30,11 +30,6 @@ config ANDROID_RAM_CONSOLE
+ 	depends on !S390 && !UML
+ 	default n
+ 
+-config ANDROID_RAM_CONSOLE_ENABLE_VERBOSE
+-	bool "Enable verbose console messages on Android RAM console"
+-	default y
+-	depends on ANDROID_RAM_CONSOLE
+-
+ menuconfig ANDROID_RAM_CONSOLE_ERROR_CORRECTION
+ 	bool "Android RAM Console Enable error correction"
+ 	default n
+diff --git a/drivers/staging/android/ram_console.c b/drivers/staging/android/ram_console.c
+index ed7827bded15..73215e2ee204 100644
+--- a/drivers/staging/android/ram_console.c
++++ b/drivers/staging/android/ram_console.c
+@@ -285,9 +285,6 @@ static int __init ram_console_init(struct ram_console_buffer *buffer,
+ 	buffer->size = 0;
+ 
+ 	register_console(&ram_console);
+-#ifdef CONFIG_ANDROID_RAM_CONSOLE_ENABLE_VERBOSE
+-	console_verbose();
+-#endif
+ 	return 0;
+ }
+ 
+-- 
+2.26.2
+

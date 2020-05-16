@@ -1,0 +1,42 @@
+From 06f3d3bdee9bac871c556c34ea80303033c474b3 Mon Sep 17 00:00:00 2001
+From: Anton Vorontsov <anton.vorontsov@linaro.org>
+Date: Fri, 11 May 2012 17:17:06 -0700
+Subject: [PATCH 1/7] persistent_ram: Remove prz->node
+
+The 'node' struct member is unused, so remove it.
+
+Signed-off-by: Anton Vorontsov <anton.vorontsov@linaro.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/staging/android/persistent_ram.c | 2 --
+ drivers/staging/android/persistent_ram.h | 1 -
+ 2 files changed, 3 deletions(-)
+
+diff --git a/drivers/staging/android/persistent_ram.c b/drivers/staging/android/persistent_ram.c
+index 8407112f701f..12444fd16d5e 100644
+--- a/drivers/staging/android/persistent_ram.c
++++ b/drivers/staging/android/persistent_ram.c
+@@ -407,8 +407,6 @@ struct persistent_ram_zone *__persistent_ram_init(struct device *dev, bool ecc)
+ 		goto err;
+ 	}
+ 
+-	INIT_LIST_HEAD(&prz->node);
+-
+ 	ret = persistent_ram_buffer_init(dev_name(dev), prz);
+ 	if (ret) {
+ 		pr_err("persistent_ram: failed to initialize buffer\n");
+diff --git a/drivers/staging/android/persistent_ram.h b/drivers/staging/android/persistent_ram.h
+index f41e2086c645..563535547d8d 100644
+--- a/drivers/staging/android/persistent_ram.h
++++ b/drivers/staging/android/persistent_ram.h
+@@ -38,7 +38,6 @@ struct persistent_ram {
+ };
+ 
+ struct persistent_ram_zone {
+-	struct list_head node;
+ 	void *vaddr;
+ 	struct persistent_ram_buffer *buffer;
+ 	size_t buffer_size;
+-- 
+2.26.2
+
