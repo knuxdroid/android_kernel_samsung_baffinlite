@@ -1111,7 +1111,7 @@ static int check_version(Elf_Shdr *sechdrs,
 	unsigned int i, num_versions;
 	struct modversion_info *versions;
 
-#ifdef CONFIG_ARCH_HAWAII
+#ifdef CONFIG_ARCH_JAVA
 	/* HACK: Don't check for proprietary Samsung VoiceSolution */
 	if (strcmp(mod->name, "VoiceSolution") == 0)
 		return 1;
