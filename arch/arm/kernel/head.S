@@ -94,10 +94,20 @@ ENTRY(stext)
 	setmode	PSR_F_BIT | PSR_I_BIT | SVC_MODE, r9 @ ensure svc mode
 						@ and irqs disabled
 	mrc	p15, 0, r9, c0, c0		@ get processor id
+
+#R7 is not used for the timebeing. 
+	adr 	r7, __debug_chury_addr
+	str	r0, [r7], #4
+	str	r1, [r7], #4
+	str	r2, [r7], #4
+
 	bl	__lookup_processor_type		@ r5=procinfo r9=cpuid
 	movs	r10, r5				@ invalid processor (r5=0)?
  THUMB( it	eq )		@ force fixup-able long branch encoding
 	beq	__error_p			@ yes, error 'p'
+
+	str	r5, [r7], #4
+	str	r9, [r7], #4
 
 #ifdef CONFIG_ARM_LPAE
 	mrc	p15, 0, r3, c0, c1, 4		@ read ID_MMFR0
@@ -116,18 +126,30 @@ ENTRY(stext)
 	ldr	r8, =PHYS_OFFSET		@ always constant in this case
 #endif
 
+	str	r3, [r7], #4
+	str	r4, [r7], #4
+	str	r8, [r7], #4
 	/*
 	 * r1 = machine no, r2 = atags or dtb,
 	 * r8 = phys_offset, r9 = cpuid, r10 = procinfo
 	 */
 	bl	__vet_atags
+	adr 	r7, __debug_chury_addr2
+	str	r0, [r7], #4
+
 #ifdef CONFIG_SMP_ON_UP
 	bl	__fixup_smp
 #endif
 #ifdef CONFIG_ARM_PATCH_PHYS_VIRT
 	bl	__fixup_pv_table
 #endif
+	adr 	r7, __debug_chury_addr3
+	str	pc, [r7], #4
+
 	bl	__create_page_tables
+
+	adr 	r7, __debug_chury_addr4
+	str	pc, [r7], #4
 
 	/*
 	 * The following calls CPU specific code in a position independent
@@ -149,6 +171,26 @@ ENDPROC(stext)
 #ifndef CONFIG_XIP_KERNEL
 2:	.long	.
 	.long	PAGE_OFFSET
+#endif
+
+#ifndef CHURY_DEBUG 
+	.align
+__debug_chury_addr:
+	.long	0xBABEFACE  @ r0
+	.long	0xBABEFACE  @ r1
+	.long	0xBABEFACE  @ r2 
+	.long	0xBABEFACE  @ r5
+	.long	0xBABEFACE  @ r9
+	.long	0xBABEFACE  @ r3 
+	.long	0xBABEFACE  @ r4
+	.long	0xBABEFACE  @ r8
+__debug_chury_addr2:
+	.long	0xBABEFACE
+__debug_chury_addr3:
+	.long	0xBABEFACE
+__debug_chury_addr4:
+	.long	0xBABEFACE
+	.long	0xBABEFACE
 #endif
 
 /*

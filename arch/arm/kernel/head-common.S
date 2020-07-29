@@ -199,6 +199,34 @@ __error:
 	str	r3, [r0], #4
 	str	r3, [r0], #4
 #endif
+
+    adr r0, __error_chury_stack
+
+	stmia	r0!, {r0-r12,sp,pc}			@ Save control register values
+	mrs		r1, cpsr
+	str		r3, [r0], #4
+
 1:	mov	r0, r0
 	b	1b
+
+	.align	4
+__error_chury_stack:
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
+	.long	0xCAFECAFE
 ENDPROC(__error)

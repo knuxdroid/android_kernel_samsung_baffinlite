@@ -81,6 +81,10 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 	unsigned long tmp;
 
 	__asm__ __volatile__(
+#ifdef CONFIG_USE_JAVA_SPINLOCK
+"	nop\n"
+"	isb\n"
+#endif
 "1:	ldrex	%0, [%1]\n"
 "	teq	%0, #0\n"
 	WFE("ne")
@@ -140,6 +144,10 @@ static inline void arch_write_lock(arch_rwlock_t *rw)
 	unsigned long tmp;
 
 	__asm__ __volatile__(
+#ifdef CONFIG_USE_JAVA_SPINLOCK
+"	nop\n"
+"	isb\n"
+#endif
 "1:	ldrex	%0, [%1]\n"
 "	teq	%0, #0\n"
 	WFE("ne")
@@ -206,6 +214,10 @@ static inline void arch_read_lock(arch_rwlock_t *rw)
 	unsigned long tmp, tmp2;
 
 	__asm__ __volatile__(
+#ifdef CONFIG_USE_JAVA_SPINLOCK
+"	nop\n"
+"	isb\n"
+#endif
 "1:	ldrex	%0, [%2]\n"
 "	adds	%0, %0, #1\n"
 "	strexpl	%1, %0, [%2]\n"

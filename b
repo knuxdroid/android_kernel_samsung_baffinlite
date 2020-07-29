@@ -1,0 +1,339 @@
+baffinlite: fix voicesolution hack to work with java
+baffinlite: cleanup
+net: ipv6: Add a sysctl to make optimistic addresses useful candidates
+ipv6: addrconf: validate new MTU before applying it
+net: ipv6: allow choosing optimistic addresses with use_optimistic
+net: ipv6: Add a sysctl to make optimistic addresses useful candidates
+net: ipv6: autoconf routes into per-device tables
+ipv6: remove max_addresses check from ipv6_create_tempaddr
+ipv6,mcast: always hold idev->lock before mca_lock
+ipv6: don't call addrconf_dst_alloc again when enable lo
+ipv6: assign rt6_info to inet6_ifaddr in init_loopback
+net IPv6 : Fix broken IPv6 routing table after loopback down-up
+ipv6: fix bad free of addrconf_init_net
+ipv6: fix the noflags test in addrconf_get_prefix_route
+ipv6: addrconf: fix /proc/net/if_inet6
+ipv6: del unreachable route when an addr is deleted on lo
+config: disable SYSVIPC, ANDROID_LOGGER, enable DECOMPRESS_LZMA
+kernel: properly use gzip instead of minigzip
+kernel: change ARCH_CAPRI to ARCH_HAWAII (probably not necesarry but still)
+bcmdhd: fix misspelling of CONFIG_ARCH_HAWAII
+config: disable CONFIG_CFG80211_INTERNAL_REGDB
+cfg80211: disable internal regdb, add one as fallback
+ bcm_fuse_net: fix printk flood in Rx path
+ 2G/3G Data: Put TX work in workqueue.
+Revert "TEMP: Disable GZIP kernel compression to skip minigzip dependency"
+baffinlite: use gzip instead of minigzip
+baffinlite: properly fix timeconst
+TEMP: Disable GZIP kernel compression to skip minigzip dependency
+baffinlite: fix timeconst error
+mm: remove compressed copy from zram in-memory
+baffinlite: Enable LZMA for ramdisk
+baffinlite: Redo TWRP defconfig
+baffinlite: Enable swap
+baffinlite: Enable LZ4, and use it for ZRAM.
+zram: Add LZ4 support
+lib: lz4: Set ARM_EFFICIENT_UNALIGNED_ACCESS
+lz4: add overrun checks to lz4_uncompress_unknownoutputsize()
+lz4: fix another possible overrun
+lz4: ensure length does not wrap
+lz4: fix compression/decompression signedness mismatch
+lib/lz4: correct the LZ4 license
+lib: add lz4 compressor module
+lib: add support for LZ4-compressed kernel
+decompressor: add LZ4 decompressor module
+baffinlite: Add TWRP defconfig
+baffinlite: Enable F2FS
+- f2fs: flush symlink path to avoid broken symlink after POR
+- f2fs: avoid abnormal behavior on broken symlink
+f2fs: assign parent's i_mode for empty dir
+f2fs: add F2FS_INLINE_DOTS to recover missing dot dentries
+Revert "f2fs: add F2FS_INLINE_DOTS to recover missing dot dentries"
+Revert "f2fs: assign parent's i_mode for empty dir"
+f2fs: do not recover wrong data index
+f2fs: do not increase link count during recovery
+f2fs: assign parent's i_mode for empty dir
+f2fs: add F2FS_INLINE_DOTS to recover missing dot dentries
+f2fs: fix mismatching lock and unlock pages for roll-forward recovery
+f2fs: fix sparse warnings
+f2fs: limit b_size of mapped bh in f2fs_map_bh
+f2fs: persist system.advise into on-disk inode
+f2fs: avoid NULL pointer dereference in f2fs_xattr_advise_get
+f2fs: preallocate fallocated blocks for direct IO
+f2fs: enable inline data by default
+f2fs: preserve extent info for extent cache
+f2fs: initialize extent tree with on-disk extent info of inode
+f2fs: introduce __{find,grab}_extent_tree
+f2fs: split set_data_blkaddr from f2fs_update_extent_cache
+f2fs: enable fast symlink by utilizing inline data
+f2fs: remove unnecessary macro
+f2fs: fix sparse warnings
+f2fs: add f2fs_destroy_trace_ios to free radix tree
+f2fs: add spin_lock to cover radix operations in IO tracer
+f2fs: support norecovery mount option
+f2fs: implement -o dirsync
+f2fs: disable roll-forward when active_logs = 2
+f2fs: activate f2fs_trace_ios
+f2fs: activate f2fs_trace_pid
+f2fs: add key functions for f2fs_io_tracer
+f2fs: add f2fs_io_tracer support
+f2fs: add some tracepoints to debug volatile and atomic writes
+f2fs: avoid punch_hole overhead when releasing volatile data
+f2fs: avoid wrong f2fs_bug_on when truncating inline_data
+f2fs: enhance multi-threads performance
+f2fs: set buffer_new when new blocks are allocated
+f2fs: set SBI_NEED_FSCK when encountering exception in recovery
+- f2fs: fix to cover sentry_lock for block allocation
+f2fs: fix to check current blkaddr in __allocate_data_blocks
+f2fs: fix to truncate inline data past EOF
+f2fs: fix to calculate max length of contiguous free slots correctly
+f2fs: fix unlocked nat set cache operation
+f2fs: cleanup statement about max orphan inodes calc
+f2fs: remove unnecessary condition judgment
+f2fs: set the correct place of initializing *res_page
+f2fs: reduce searching region of segmap when set free section
+f2fs: fix extent cache memory leak
+f2fs: relocate Kconfig from misc filesystems
+f2fs: report -ENOENT for unreached data indices
+f2fs: clear append/update flags once fsync is done
+f2fs: avoid to trigger writepage during POR
+f2fs: add stat info for moved blocks by background gc
+f2fs: fix to issue small discard in real-time mode discard
+f2fs: add cond_resched() to sync_dirty_dir_inodes()
+f2fs: fix max orphan inodes calculation
+f2fs: don't need to collect dirty sit entries and flush journal when there's no dirty sit entries
+f2fs: fix block_ops trace point
+f2fs: check its block allocation to avoid producing wrong dirty pages
+f2fs: clear page's up-to-date if block was deallocated
+f2fs: fix the number of orphan inode blocks
+f2fs: introduce macro __cp_payload
+f2fs: support fs shutdown
+f2fs: add F2FS_IOC_GETVERSION support
+f2fs: avoid wrong error during recovery
+f2fs: remove obsolete code
+f2fs: use extent cache for dir
+f2fs: switch to check FI_NO_EXTENT in f2fs_{lookup,update}_extent_cache
+f2fs: support fast lookup in extent cache
+f2fs: add trace for rb-tree extent cache ops
+f2fs: show extent tree, node stat info in debugfs
+f2fs: enable rb-tree extent cache
+f2fs: add a mount option for rb-tree extent cache
+f2fs: split UMOUNT and FASTBOOT flags
+f2fs: introduce -o fastboot for reducing booting time only
+f2fs: add core functions for rb-tree extent cache
+f2fs: introduce infra macro and data structure of rb-tree extent cache
+f2fs: introduce universal lookup/update interface for extent cache
+f2fs: introduce f2fs_map_bh to clean codes of check_extent_cache
+f2fs: simplfy a field name in struct f2fs_extent,extent_info
+f2fs: move ext_lock out of struct extent_info
+f2fs: use ->writepage in sync_meta_pages
+f2fs: introduce f2fs_update_dentry to clean up duplicated codes
+f2fs: remove unused inline_dentry_addr
+f2fs: use spinlock for segmap_lock instead of rwlock
+f2fs: fix accessing wrong indexed data blocks
+f2fs: avoid variable length array
+f2fs: fix sparse warnings
+f2fs: allocate data blocks in advance for f2fs_direct_IO
+f2fs: introduce macros to convert bytes and blocks in f2fs
+f2fs: call set_buffer_new for get_block
+f2fs: check node page contents all the time
+f2fs: avoid data offset overflow when lseeking huge file
+f2fs: fix to use highmem for pages of newly created directory
+f2fs: introduce a batched trim
+f2fs: merge {invalidate,release}page for meta/node/data pages
+f2fs: show the number of writeback pages in stat
+f2fs: keep PagePrivate during releasepage
+f2fs: should fail mount when trying to recover data on read-only dev
+f2fs: split UMOUNT and FASTBOOT flags
+f2fs: avoid write_checkpoint if f2fs is mounted readonly
+f2fs: fix not to drop mount options when retrying fill_super
+f2fs: merge flags in struct f2fs_sb_info
+f2fs: clean up {in,de}create_sleep_time
+f2fs: make truncate_inline_date static
+f2fs: use f2fs_radix_tree_insert to clean codes
+f2fs: leave comment for code readability
+f2fs: fix to release count of meta page in ->invalidatepage
+f2fs: do checkpoint when umount flag is not set
+f2fs: trigger correct checkpoint during umount
+f2fs: update memory footprint information
+f2fs: fix wrong memory footprint statistics in debugfs
+f2fs: avoid infinite loop on cp_error
+f2fs: add nat/sit entries into status
+f2fs: free radix_tree_nodes used by nat_set entries
+f2fs: fix wrong unlock_page call
+f2fs: get rid of kzalloc in __recover_inline_status
+f2fs: align direct_io'ed data to section
+f2fs: remove uncovered code path
+f2fs: avoid potential unnecessary codes
+f2fs: clean up to remove parameter
+f2fs: reuse inode_entry_slab in gc procedure for using slab more effectively
+f2fs: cleanup parameters for trace_f2fs_submit_{read_,write_,page_,page_m}bio with fio
+f2fs: cleanup trace event of f2fs_submit_page_{m,}bio with DECLARE_EVENT_CLASS
+f2fs: fix missing cold bit during recovery
+f2fs: add block count by in-place-update in stat info
+f2fs: avoid double lock for cp_rwsem
+f2fs: use f2fs_io_info to clean up messy parameters during IO path
+f2fs: use ra_meta_pages to simplify readahead code in restore_node_summary
+f2fs: merge two uchar variable in struct node_info to reduce memory cost
+f2fs: readahead contiguous current summary blocks in checkpoint
+f2fs: remove unnecessary call to invalidate inmemory pages
+f2fs: fix small discards not to issue redundantly
+- f2fs: fix missing cp.reason is CP_SYNC
+- f2fs: change atomic and volatile write policies
+f2fs: don't need to call lock_op and lock_page for abort
+f2fs: fix wrong condition check to trigger f2fs_sync_fs
+f2fs: remove checking dirty_exceed
+f2fs: avoid to ra unneeded blocks in recover flow
+f2fs: introduce is_valid_blkaddr to cleanup codes in ra_meta_pages
+f2fs: fix to enable readahead for SSA/CP blocks
+f2fs: use atomic for counting inode with inline_{dir,inode} flag
+f2fs: cleanup path to need cp at fsync
+f2fs: check if inode state is dirty at fsync
+f2fs: count the number of inmemory pages
+f2fs: release inmemory pages when the file was closed
+f2fs: set page private for inmemory pages for truncation
+f2fs: count inline_xx in do_read_inode
+f2fs: do retry operations with cond_resched
+f2fs: call radix_tree_preload before radix_tree_insert
+f2fs: use rw_semaphore for nat entry lock
+f2fs: fix missing kmem_cache_free
+f2fs: more fast lookup for gc_inode list
+f2fs: cleanup redundant macro
+f2fs: fix to return correct error number in f2fs_write_begin
+f2fs: cleanup if-statement of phase in gc_data_segment
+f2fs: fix to recover converted inline_data
+f2fs: make clean the page before writing
+f2fs: no more dirty_nat_entires when flushing
+f2fs: check dirty_nat_cnt before flushing nat entries in journal
+- f2fs: fix deadlock during inline_data conversion
+f2fs: fix typos for the word "destroy" in jump labels
+f2fs: remove unnecessary flush_dcache_page
+f2fs: fix livelock calling f2fs_iget during f2fs_evict_inode
+f2fs: introduce f2fs_dentry_kunmap to clean up
+f2fs: call flush_dcache_page when the page was updated
+Revert "f2fs: call flush_dcache_page when the page was updated"
+f2fs: fix wrong data structure when create slab
+f2fs: call flush_dcache_page when the page was updated
+f2fs: write SSA pages under memory pressure
+- f2fs: submit bio for node blocks in the reclaim path
+f2fs: introduce struct inode_management to wrap inner fields
+f2fs: remove unneeded check code with option in f2fs_remount
+f2fs: avoid unable to restart gc thread in remount
+- f2fs: put the inode page when error was occurred
+- f2fs: fix to call put_page at the error handling routine
+f2fs: convert inline_data when i_size becomes large
+f2fs: fix deadlock to grab 0'th data page
+f2fs: reduce the number of inline_data inode before clearing it
+f2fs: do not skip any writes under memory pressure
+f2fs: write node pages if checkpoint is not doing
+f2fs: control the memory footprint used by ino entries
+f2fs: introduce the number of inode entries
+f2fs: fix inline_data missing problem
+- f2fs: fix inline_data missing points
+- f2fs: avoid race condition in handling wait_io
+f2fs: send discard commands in larger extent
+f2fs: revisit inline_data to avoid data races and potential bugs
+f2fs: do not discard data protected by the previous checkpoint
+f2fs: flush_dcache_page for inline data
+f2fs: call write_checkpoint under disabled gc
+f2fs: use mark_page_accessed for old kernel version
+f2fs: fix possible data corruption in f2fs_write_begin()
+f2fs: use current_sit_addr to replace the open code
+f2fs: set raw_super default to NULL to avoid compile warning
+f2fs: rename f2fs_set/clear_bit to f2fs_test_and_set/clear_bit
+f2fs: introduce f2fs_change_bit to simplify the change bit logic
+f2fs: remove the seems unneeded argument 'type' from __get_victim
+f2fs: remove the redundant function cond_clear_inode_flag
+f2fs: avoid returning uninitialized value to userspace from f2fs_trim_fs()
+f2fs: use kmap_atomic instead of kmap
+f2fs: reuse make_empty_dir code for inline_dentry
+f2fs: introduce f2fs_dentry_ptr structure for code clean-up
+f2fs: should not truncate any inline_dentry
+f2fs: reuse core function in f2fs_readdir for inline_dentry
+f2fs: fix counting inline_data inode numbers
+f2fs: add stat info for inline_dentry inodes
+f2fs: avoid deadlock on init_inode_metadata
+f2fs: fix to wait correct block type
+f2fs: reuse find_in_block code for find_in_inline_dir
+f2fs: reuse room_for_filename for inline dentry operation
+f2fs: update f2fs documentation for inline dir support
+f2fs: enable inline dir handling
+f2fs: add key function to handle inline dir
+f2fs: export dir operations for inline dir
+f2fs: add a new mount option for inline dir
+f2fs: add infra struct and helper for inline dir
+f2fs: avoid infinite loop at cp_error
+f2fs: avoid build warning
+f2fs: fix to call f2fs_unlock_op
+- f2fs: avoid to allocate when inline_data was written
+f2fs: use highmem for directory pages
+f2fs: fix race conditon on truncation with inline_data
+f2fs: should truncate any allocated block for inline_data write
+f2fs: invalidate inmemory page
+f2fs: do not make dirty any inmemory pages
+f2fs: initial build for v3.4
+f2fs: initial source codes from Linux v3.18-rc1
+baffinlite: Enable ZRAM
+baffinlite: Sort defconfig lines
+baffinlite: Enable missing SELinux flags
+video: Fix compilation
+udp: fix behavior of wrong checksums
+ipv4: Missing sk_nulls_node_init() in ping_unhash().
+net: llc: use correct size for sysctl timeout entries
+net: ipv4: current group_info should be put after using.
+netfilter: nf_conntrack_dccp: fix skb_header_pointer API usages
+vfs: read file_handle only once in handle_to_path
+ipv6: Don't reduce hop limit for an interface
+netfilter: nf_conntrack: reserve two bytes for nf_ct_ext->len
+netfilter: conntrack: disable generic tracking for known protocols
+eCryptfs: Remove buggy and unnecessary write in file name decode routine
+ipv4: try to cache dst_entries which would cause a redirect
+defconfig: baffinlite: enable CONFIG_IOSCHED_ROW
+block: row: squash commits from codeaurora.
+Add ROW I/O Scheduler by Qualcomm.
+block: Add API for urgent request handling
+block: Add support for reinsert a dispatched req
+ARM: kconfig: select HAVE_EFFICIENT_UNALIGNED_ACCESS for CPUv6+ && MMU
+USB: f_mass_storage: 2048 block size for cdrom devices
+USB: f_mass_storage: Added cdrom option to UMS-lun-devices
+kernel: android: use minigzip instead of gzip
+baffinlite: defconfig: enable CONFIG_NETFILTER_XT_TARGET_IDLETIMER
+ARM: 7670/1: fix the memset fix
+ARM: 7668/1: fix memset-related crashes caused by recent GCC (4.7.2) optimizations
+Handle 'sk' being NULL in UID-based routing.
+net: core: Support UID-based routing.
+net: ipv6: fix wrong ping_v6_sendmsg return value
+net: ipv6: add missing lock in ping_v6_sendmsg
+net: ipv6: Add IPv6 support to the ping socket.
+ipv6: introdcue __ipv6_addr_needs_scope_id and ipv6_iface_scope_id helper functions
+tracing/syscalls: Ignore numbers outside NR_syscalls' range
+tracing/syscalls: Fix perf syscall tracing when syscall_nr == -1
+net/l2tp: don't fall back on UDP [get|set]sockopt
+lzo: properly check for overruns
+lib/lzo: huge LZO decompression speedup on ARM by using unaligned access
+lib/lzo: Update LZO compression to current upstream version
+lib/lzo: Rename lzo1x_decompress.c to lzo1x_decompress_safe.c
+futex: Make lookup_pi_state more robust
+futex: Always cleanup owner tid in unlock_pi
+futex: Validate atomic acquisition in futex_lock_pi_atomic()
+futex-prevent-requeue-pi-on-same-futex.patch futex: Forbid uaddr == uaddr2 in futex_requeue(..., requeue_pi=1)
+futex: Prevent attaching to kernel threads
+futex: Add another early deadlock detection check
+Fix n_tty patch for older kernels
+n_tty: Fix n_tty_write crash when echoing in raw mode
+baffinlite: defconfig: enable some extra features
+Remove Samsung exFAT driver
+net: wireless: bcmdhd: Enable p2p support bits for p2p device
+cyttsp4_mt_common: disable log spam
+baffinlite: fix loading VoiceSolution
+baffinlite: defconfig: enable SELinux
+netfilter: qtaguid: rate limit some of the printks
+netfilter: xt_qtaguid: Allow tracking loopback
+netfilter: xt_qtaguid: extend iface stat to report protocols
+netfilter: xt_qtaguid: remove AID_* dependency for access control
+usb: gadget: adb: fix freeze on 'adb root'
+bluetooth: bcmbt: lpm: fix polarity
+drivers: cpufreq: Send a uevent when governor changes
+usb: gadget: android: use f_mtp instead of f_mtp_samsung
+Enable compile with CM tree
+Initial commit from GT-I9060_JB_Opensource.zip

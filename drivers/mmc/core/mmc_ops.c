@@ -21,6 +21,8 @@
 #include "core.h"
 #include "mmc_ops.h"
 
+#define MMC_OPS_TIMEOUT_MS	(10 * 60 * 1000) /* 10 minute timeout */
+
 static int _mmc_select_card(struct mmc_host *host, struct mmc_card *card)
 {
 	int err;
@@ -382,7 +384,18 @@ int mmc_switch(struct mmc_card *card, u8 set, u8 index, u8 value,
 {
 	int err;
 	struct mmc_command cmd = {0};
+	unsigned long timeout;
 	u32 status;
+
+
+#if 0
+	/***
+		NANI. to check eMMC control
+	***/
+	printk( "[NANI] %s, %d : %s, set(%d), index(%d), value(%d)\n",
+		__FUNCTION__, __LINE__, mmc_hostname(card->host), set, index, value );
+#endif
+
 
 	BUG_ON(!card);
 	BUG_ON(!card->host);
@@ -399,7 +412,10 @@ int mmc_switch(struct mmc_card *card, u8 set, u8 index, u8 value,
 	if (err)
 		return err;
 
+	mdelay( 1 );
+
 	/* Must check status to be sure of no errors */
+	timeout = jiffies + msecs_to_jiffies(MMC_OPS_TIMEOUT_MS);
 	do {
 		err = mmc_send_status(card, &status);
 		if (err)
@@ -408,6 +424,13 @@ int mmc_switch(struct mmc_card *card, u8 set, u8 index, u8 value,
 			break;
 		if (mmc_host_is_spi(card->host))
 			break;
+
+		/* Timeout if the device never leaves the program state. */
+		if (time_after(jiffies, timeout)) {
+			pr_err("%s: Card stuck in programming state! %s\n",
+				mmc_hostname(card->host), __func__);
+			return -ETIMEDOUT;
+		}
 	} while (R1_CURRENT_STATE(status) == R1_STATE_PRG);
 
 	if (mmc_host_is_spi(card->host)) {
