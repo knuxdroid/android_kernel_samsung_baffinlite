@@ -656,11 +656,11 @@ int bcmsdh_register_oob_intr(void * dhdp)
 		if (error)
 			return -ENODEV;
 
-#if defined(CONFIG_ARCH_RHEA) || defined(CONFIG_ARCH_CAPRI) || defined(CONFIG_ARCH_HWAII) || defined(CONFIG_ARCH_JAVA)
+#if defined(CONFIG_ARCH_RHEA) || defined(CONFIG_ARCH_CAPRI) || defined(CONFIG_ARCH_HAWAII) || defined(CONFIG_ARCH_JAVA)
 		if (device_may_wakeup(sdhcinfo->dev)) {
 #endif
 			error = enable_irq_wake(sdhcinfo->oob_irq);
-#if defined(CONFIG_ARCH_RHEA) || defined(CONFIG_ARCH_CAPRI) || defined(CONFIG_ARCH_HWAII) || defined(CONFIG_ARCH_JAVA)
+#if defined(CONFIG_ARCH_RHEA) || defined(CONFIG_ARCH_CAPRI) || defined(CONFIG_ARCH_HAWAII) || defined(CONFIG_ARCH_JAVA)
 		}
 #endif
 		if (error)
@@ -679,13 +679,13 @@ void bcmsdh_set_irq(int flag)
 		sdhcinfo->oob_irq_enable_flag = flag;
 		if (flag) {
 			enable_irq(sdhcinfo->oob_irq);
-#if defined(CONFIG_ARCH_RHEA) || defined(CONFIG_ARCH_CAPRI) || defined(CONFIG_ARCH_HWAII) || defined(CONFIG_ARCH_JAVA)
+#if defined(CONFIG_ARCH_RHEA) || defined(CONFIG_ARCH_CAPRI) || defined(CONFIG_ARCH_HAWAII) || defined(CONFIG_ARCH_JAVA)
 			if (device_may_wakeup(sdhcinfo->dev))
 #endif
 				enable_irq_wake(sdhcinfo->oob_irq);
 		} else {
 #if !(defined(BCMSPI_ANDROID) && defined(CUSTOMER_HW4) && defined(CONFIG_NKERNEL))
-#if defined(CONFIG_ARCH_RHEA) || defined(CONFIG_ARCH_CAPRI) || defined(CONFIG_ARCH_HWAII) || defined(CONFIG_ARCH_JAVA)
+#if defined(CONFIG_ARCH_RHEA) || defined(CONFIG_ARCH_CAPRI) || defined(CONFIG_ARCH_HAWAII) || defined(CONFIG_ARCH_JAVA)
 			if (device_may_wakeup(sdhcinfo->dev))
 #endif
 				disable_irq_wake(sdhcinfo->oob_irq);
