@@ -1,21 +1,14 @@
 #!/usr/bin/env bash
 # turns name to commit
+# if multiple commits are found, returns the latest one
 # usage: name2commit "name"
 
-echo "Looking for '$1'..."
+commit=$(git log origin/deprecated/android-3.4 -- | grep -iFB5 "$1" | grep "commit " | sed 's/commit\ //' | head -n1)
 
-#commit=$(git log origin/deprecated/android-3.4 --| grep -iB5 "$1" | grep "commit " | sed 's/commit\ //')
+if [[ $commit ]]; then
+	echo "$commit"
+else
+	exit 1
+fi
 
-cd ../baffinlite
-
-commit=$(git log | grep -iB5 "$1" | grep "commit " | sed 's/commit\ //')
-
-echo "Found: $commit"
-
-#git cherry-pick $commit
-
-cd ../common
-
-wget https://github.com/knuxdroid/android_kernel_samsung_baffinlite/commit/$commit.patch
-git am $commit.patch
-rm $commit.patch
+git cherry-pick $commit
